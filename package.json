@@ -1,0 +1,56 @@
+{
+    "name": "@aspected/client",
+    "version": "0.3.0",
+    "description": "Node.js client for the Aspected database",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/aspected-dev/aspected-js.git"
+    },
+    "sideEffects": false,
+    "main": "./dist/index.js",
+    "module": "./dist/index.mjs",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "browser": "./dist/index.js",
+            "require": "./dist/index.js",
+            "default": "./dist/index.mjs"
+        }
+    },
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "generate": "tsx build.ts",
+        "compile": "tsup && tsc -p tsconfig.build.json",
+        "build": "npm run generate && npm run compile",
+        "format": "prettier --write .",
+        "format:check": "prettier --check .",
+        "lint": "oxlint",
+        "check-version": "tsx scripts/check-version.ts"
+    },
+    "keywords": [
+        "aspected",
+        "vector",
+        "vector-database",
+        "sdk",
+        "typescript",
+        "fetch"
+    ],
+    "engines": {
+        "node": ">=20"
+    },
+    "devDependencies": {
+        "@openapi-contrib/openapi-schema-to-json-schema": "^5.1.0",
+        "@types/nunjucks": "^3.2.6",
+        "json-schema-to-typescript": "^15.0.4",
+        "nunjucks": "^3.2.4",
+        "oxlint": "^0.15.0",
+        "prettier": "^3.9.6",
+        "tsup": "^8.5.1",
+        "tsx": "^4.19.2",
+        "typescript": "^7.0.2"
+    }
+}

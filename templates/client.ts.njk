@@ -1,0 +1,115 @@
+{{ header }}
+
+/**
+ * Aspected client -- a simple fetch-based TypeScript client for the Aspected Database API.
+ */
+
+import type {
+    ErrorResponse,
+{%- for imp in imports %}
+    {{ imp }},
+{%- endfor %}
+} from "./types";
+
+/**
+ * Raised when the Aspected API returns a non-success HTTP response.
+ */
+export class AspectedError extends Error {
+    /** HTTP status code. */
+    readonly status: number;
+    /** HTTP status text. */
+    readonly statusText: string;
+    /** Server-provided error message, if available. */
+    readonly error?: string;
+
+    constructor(status: number, statusText: string, error?: string) {
+        let message = `${status} ${statusText}`;
+        if (error) {
+            message += `: ${error}`;
+        }
+        super(message);
+        this.name = "AspectedError";
+        this.status = status;
+        this.statusText = statusText;
+        this.error = error;
+    }
+}
+
+/**
+ * Client for the Aspected database.
+ */
+export class AspectedClient {
+    private readonly baseUrl: string;
+    private readonly init: RequestInit;
+
+    /**
+     * @param url Base URL of the Aspected database server (e.g. `"http://localhost:8080"`).
+     * @param init Default `RequestInit` options applied to every request.
+     */
+    constructor(url: string, init: RequestInit = {}) {
+        this.baseUrl = url.replace(/\/+$/, "");
+        this.init = init;
+    }
+
+    // ------------------------------------------------------------------
+    // Generated API Methods
+    // ------------------------------------------------------------------
+{% for op in operations %}
+    /** {{ op.description }} */
+    async {{ op.method_name }}(
+{%- for p in op.path_params %}
+        {{ p.js_name }}: {{ p.type }},
+{%- endfor %}
+{%- if op.has_body %}
+        body: {{ op.request_class }},
+{%- endif %}
+{%- for p in op.query_params %}
+        {{ p.js_name }}{% if not p.required %}?{% endif %}: {{ p.type }},
+{%- endfor %}
+    ): Promise<{{ op.response_class }}> {
+{%- if op.query_params.length %}
+        const params = new URLSearchParams();
+{%- for p in op.query_params %}
+        if ({{ p.js_name }} !== undefined) {
+{%- if p.is_array %}
+            for (const value of {{ p.js_name }}) {
+                params.append("{{ p.name }}", String(value));
+            }
+{%- else %}
+            params.append("{{ p.name }}", String({{ p.js_name }}));
+{%- endif %}
+        }
+{%- endfor %}
+        const query = params.toString();
+        const url = `${this.baseUrl}{{ op.url_template }}${query ? `?${query}` : ""}`;
+{%- else %}
+        const url = `${this.baseUrl}{{ op.url_template }}`;
+{%- endif %}
+        const resp = await fetch(url, {
+            ...this.init,
+            method: "{{ op.http_method_upper }}",
+            headers: {
+{%- if op.has_body %}
+                "Content-Type": "application/json",
+{%- endif %}
+                ...this.init.headers,
+            },
+{%- if op.has_body %}
+            body: JSON.stringify(body),
+{%- endif %}
+        });
+        if (!resp.ok) {
+            let errorMsg: string | undefined;
+            try {
+                const errorResult = (await resp.json()) as ErrorResponse;
+                errorMsg = errorResult.error;
+            } catch {
+                // Ignore malformed error bodies.
+            }
+            throw new AspectedError(resp.status, resp.statusText, errorMsg);
+        }
+        return (await resp.json()) as {{ op.response_class }};
+    }
+{% endfor %}
+}
+

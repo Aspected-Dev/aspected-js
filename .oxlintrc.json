@@ -1,0 +1,8 @@
+{
+    "$schema": "./node_modules/oxlint/configuration_schema.json",
+    "ignorePatterns": ["dist", "node_modules", "src/types.ts", "src/client.ts"],
+    "categories": {
+        "correctness": "error",
+        "suspicious": "warn"
+    }
+}
