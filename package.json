@@ -45,7 +45,7 @@
     "devDependencies": {
         "@openapi-contrib/openapi-schema-to-json-schema": "^5.1.0",
         "@types/nunjucks": "^3.2.6",
-        "json-schema-to-typescript": "^15.0.4",
+        "json-schema-to-typescript": "^16.0.0",
         "nunjucks": "^3.2.4",
         "oxlint": "^0.15.0",
         "prettier": "^3.9.6",
